@@ -1,4 +1,4 @@
-DATA_CSV_PATH = "/home/pi/data.csv"
+DATA_CSV_PATH = "../data.csv"
 
 from flask import Flask, jsonify
 import csv
