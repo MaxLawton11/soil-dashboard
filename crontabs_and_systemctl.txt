@@ -1,0 +1,26 @@
+
+crontabe -e
+
+*/30 * * * * /usr/bin/python /home/pi/soil-dashboard/sample.py
+
+
+
+sudo nano /etc/systemd/system/soil-dashboard.service
+
+[Unit]
+Description=Soil Moisture Web Server
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /home/pi/soil-dashboard/web/server.py
+WorkingDirectory=/home/pi/soil-dashboard/web
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target
+
+
+sudo systemctl daemon-reload
+sudo systemctl restart soil-dashboard.service
+sudo systemctl status soil-dashboard.service

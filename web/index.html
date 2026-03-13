@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Soil & Temp Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.1.1"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+
+<!-- Latest reading -->
+<p id="latest" class="text-center text-2xl font-semibold my-4">Latest Moisture: --%</p>
+
+<div class="flex flex-col md:flex-row w-full h-[calc(100vh-100px)] gap-4 px-4">
+
+  <!-- LEFT: Temperature -->
+  <div class="md:w-1/2 flex flex-col p-4 overflow-x-auto overflow-y-hidden">
+    <canvas id="tempChart" class="h-[300px] w-full"></canvas>
+  </div>
+
+  <!-- RIGHT: Soil Moisture -->
+  <div class="md:w-1/2 flex flex-col p-4 overflow-x-auto overflow-y-hidden">
+    <canvas id="moistureChart" class="h-[300px] w-full"></canvas>
+  </div>
+
+</div>
+
+<script>
+const SENSOR_MIN = 7000;
+const SENSOR_MAX = 26000;
+const TOTAL_WET_SENSOR = 8000;
+const TOTAL_DRY_SENSOR = 25000;
+const MAX_POINTS = 144;
+
+function toMoisturePercent(value) {
+    return 100 * (SENSOR_MAX - value) / (SENSOR_MAX - SENSOR_MIN);
+}
+
+const TOTAL_WET = toMoisturePercent(TOTAL_WET_SENSOR);
+const TOTAL_DRY = toMoisturePercent(TOTAL_DRY_SENSOR);
+
+let moistureChart, tempChart;
+
+async function loadData() {
+    const res = await fetch("/data");
+    const data = await res.json();
+
+    const times = data.times;
+    const resistance = data.resistance;
+    const temp = data.temp;
+
+    // Update latest moisture
+    const latestMoisture = toMoisturePercent(resistance[resistance.length - 1]);
+    document.getElementById("latest").innerText = `Latest Moisture: ${latestMoisture.toFixed(1)}%`;
+
+    // Last MAX_POINTS points
+    const timesSlice = times.slice(-MAX_POINTS);
+    const moistureSlice = resistance.slice(-MAX_POINTS).map(toMoisturePercent);
+    const tempSlice = temp.slice(-MAX_POINTS);
+
+    // Moisture Chart
+    if (!moistureChart) {
+        const ctx = document.getElementById("moistureChart").getContext('2d');
+        moistureChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: timesSlice,
+                datasets: [{
+                    label: 'Soil Moisture (%)',
+                    data: moistureSlice,
+                    borderColor: 'green',
+                    borderWidth: 2,
+                    pointRadius: 2,
+                    fill: false,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { display: true, title: { display: true, text: 'Time' } },
+                    y: { display: true, title: { display: true, text: 'Moisture (%)' }, min:0, max:100, reverse:false }
+                },
+                plugins: {
+                    annotation: {
+                        annotations: {
+                            wetLine: { type:'line', yMin: TOTAL_WET, yMax: TOTAL_WET, borderColor:'blue', borderWidth:4, borderDash:[6,4], label:{ content:'Total Wet', enabled:true, position:'start', backgroundColor:'blue', color:'white', font:{weight:'bold'}, padding:6 } },
+                            dryLine: { type:'line', yMin: TOTAL_DRY, yMax: TOTAL_DRY, borderColor:'red', borderWidth:4, borderDash:[6,4], label:{ content:'Total Dry', enabled:true, position:'start', backgroundColor:'red', color:'white', font:{weight:'bold'}, padding:6 } }
+                        }
+                    },
+                    zoom: { pan:{ enabled:true, mode:'x', threshold:5 }, zoom:{ wheel:{enabled:false}, pinch:{enabled:false} } }
+                }
+            }
+        });
+    } else {
+        moistureChart.data.labels = timesSlice;
+        moistureChart.data.datasets[0].data = moistureSlice;
+        moistureChart.update();
+    }
+
+    // Temperature Chart
+    if (!tempChart) {
+        const ctx = document.getElementById("tempChart").getContext('2d');
+        tempChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: timesSlice,
+                datasets: [{
+                    label: 'Temperature (°C)',
+                    data: tempSlice,
+                    borderColor: 'orange',
+                    borderWidth: 2,
+                    pointRadius: 2,
+                    fill: false,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { display: true, title: { display: true, text: 'Time' } },
+                    y: { display: true, title: { display: true, text: 'Temperature (°C)' } }
+                },
+                plugins: {
+                    zoom: { pan:{ enabled:true, mode:'x', threshold:5 }, zoom:{ wheel:{enabled:false}, pinch:{enabled:false} } }
+                }
+            }
+        });
+    } else {
+        tempChart.data.labels = timesSlice;
+        tempChart.data.datasets[0].data = tempSlice;
+        tempChart.update();
+    }
+}
+
+// Refresh every 10s
+loadData();
+setInterval(loadData, 100000);
+</script>
+
+</body>
+</html>
