@@ -6,7 +6,7 @@ from datetime import datetime
 from read_moisture import read_moisture
 from read_temp import read_ds18b20_fahrenheit
 
-csv_path = "data.csv"
+csv_path = "/home/pi/soil-dashboard/data.csv"
 
 timestamp = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
