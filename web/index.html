@@ -109,7 +109,7 @@ async function loadData() {
             data: {
                 labels: timesSlice,
                 datasets: [{
-                    label: 'Temperature (°C)',
+                    label: 'Temperature (°F)',
                     data: tempSlice,
                     borderColor: 'orange',
                     borderWidth: 2,
@@ -123,7 +123,7 @@ async function loadData() {
                 maintainAspectRatio: false,
                 scales: {
                     x: { display: true, title: { display: true, text: 'Time' } },
-                    y: { display: true, title: { display: true, text: 'Temperature (°C)' } }
+                    y: { display: true, title: { display: true, text: 'Temperature (°F)' } }
                 },
                 plugins: {
                     zoom: { pan:{ enabled:true, mode:'x', threshold:5 }, zoom:{ wheel:{enabled:false}, pinch:{enabled:false} } }
