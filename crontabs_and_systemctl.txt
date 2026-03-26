@@ -1,7 +1,7 @@
 
 crontabe -e
 
-*/30 * * * * /usr/bin/python /home/pi/soil-dashboard/sample.py
+0 * * * * /usr/bin/python /home/pi/soil-dashboard/sample.py
 
 
 

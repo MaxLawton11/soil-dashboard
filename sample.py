@@ -8,7 +8,7 @@ from read_temp import read_ds18b20_fahrenheit
 
 csv_path = "/home/pi/soil-dashboard/data.csv"
 
-timestamp = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+timestamp = datetime.now().strftime("%d/%m/%Y %H:%M")
 
 append_row = [timestamp, read_moisture(), read_ds18b20_fahrenheit()]
 
