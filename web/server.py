@@ -16,7 +16,7 @@ def read_data():
             times.append(row["time"])
             resistance.append(float(row["resistance"]))   # soil moisture
             temp.append(float(row.get("temp", 0)))   # temperature column
-    return times, resistance, temp
+    return times[-145:], resistance[-145:], temp[-145:]
 
 @app.route("/data")
 def data():
